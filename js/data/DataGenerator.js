@@ -1,8 +1,23 @@
-import { faker } from '@faker-js/faker';
-
 export class DataGenerator {
   constructor() {
-    faker.seed(42); // For consistent data
+    // Simple data generation without external dependencies
+  }
+  
+  random(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+  
+  randomFloat(min, max) {
+    return Math.random() * (max - min) + min;
+  }
+  
+  randomElement(array) {
+    return array[Math.floor(Math.random() * array.length)];
+  }
+  
+  randomElements(array, count) {
+    const shuffled = [...array].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, count);
   }
 
   generatePitches() {
