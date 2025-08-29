@@ -35,22 +35,9 @@ export class BookingForm {
           </div>
         </div>
 
-        ${bookingForm.selectedDate ? `
-          <div class="booking-section">
-            <h3>Select Duration</h3>
-            <div class="form-group">
-              <select class="form-select" name="duration" data-duration-picker>
-                ${Array.from({ length: 8 }, (_, i) => i + 1).map(h => `
-                  <option value="${h}" ${duration === h ? 'selected' : ''}>
-                    ${h} hour${h > 1 ? 's' : ''}
-                  </option>
-                `).join('')}
-              </select>
-            </div>
-          </div>
-        ` : ''}
+        
 
-        ${bookingForm.selectedDate && bookingForm.selectedTime ? `
+        ${bookingForm.selectedDate ? `
           <div class="booking-section">
             <h3>Select Time</h3>
             <div class="time-grid">
@@ -397,13 +384,13 @@ export class BookingForm {
         day: 'numeric' 
     });
 
-    const duration = bookingForm.duration;
+    const duration = 1; // Fixed to 1 hour
     const pricePerHour = pitch.price;
-    const calculatedPrice = bookingForm.calculatedPrice || (pricePerHour * duration);
+    const calculatedPrice = pricePerHour;
 
     const subtotal = calculatedPrice;
-    const tax = subtotal * 0.075; // 7.5% VAT
-    const total = subtotal + tax;
+    const commission = subtotal * 0.10; // 10% booking commission
+    const total = subtotal + commission;
 
     return `
       <div class="booking-summary">
@@ -426,7 +413,7 @@ export class BookingForm {
 
         <div class="summary-row">
           <span>Duration:</span>
-          <span>${duration} hour${duration > 1 ? 's' : ''}</span>
+          <span>1 hour</span>
         </div>
 
         <div class="summary-row">
@@ -440,8 +427,8 @@ export class BookingForm {
         </div>
 
         <div class="summary-row">
-          <span>VAT (7.5%):</span>
-          <span>₦${tax.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</span>
+          <span>Booking Commission (10%):</span>
+          <span>₦${commission.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</span>
         </div>
 
         <div class="summary-row summary-total">
@@ -462,16 +449,7 @@ export class BookingForm {
       });
     }
 
-    // Duration picker
-    const durationPicker = document.querySelector('[data-duration-picker]');
-    if (durationPicker) {
-      durationPicker.addEventListener('change', (e) => {
-        const duration = parseInt(e.target.value);
-        this.appState.updateBookingForm({ duration: duration, selectedTime: null }); // Reset time on duration change
-        this.updatePricing();
-        this.updateTimeSlots(); // Refresh to show unavailable slots based on duration
-      });
-    }
+    
 
     // Time slot selection
     this.attachTimeSlotListeners();
@@ -534,15 +512,8 @@ export class BookingForm {
       return;
     }
 
-    if (!bookingForm.selectedDate || !bookingForm.selectedTime || !bookingForm.duration) {
-      this.showToast('Please select date, duration, and time', 'error');
-      return;
-    }
-
-    // Check availability one more time
-    if (!this.isTimeSlotAvailableForDuration(bookingForm.selectedTime, bookingForm.duration)) {
-      this.showToast('This time slot or consecutive duration is no longer available', 'error');
-      this.refreshBookingForm();
+    if (!bookingForm.selectedDate || !bookingForm.selectedTime) {
+      this.showToast('Please select date and time', 'error');
       return;
     }
 
@@ -553,12 +524,12 @@ export class BookingForm {
       pitchName: pitch.name,
       date: bookingForm.selectedDate,
       time: bookingForm.selectedTime,
-      duration: bookingForm.duration,
+      duration: 1,
       playerCount: bookingForm.playerCount,
       customerInfo: { ...bookingForm.customerInfo },
       specialRequests: bookingForm.specialRequests,
       paymentMethod: bookingForm.paymentMethod,
-      total: bookingForm.calculatedPrice * 1.075, // Including VAT
+      total: bookingForm.calculatedPrice * 1.10, // Including 10% commission
       status: 'confirmed',
       createdAt: new Date().toISOString()
     };
@@ -615,18 +586,7 @@ export class BookingForm {
 
   updatePricing() {
     const pitch = this.appState.getSelectedPitch();
-    const bookingForm = this.appState.getBookingForm();
-    const duration = bookingForm.duration || 1;
-
-    let price = pitch.price * duration;
-
-    // Apply discounts for longer durations
-    if (duration >= 6) {
-      price *= 0.9; // 10% discount for 6+ hours
-    }
-    if (duration >= 8) {
-      price *= 0.85; // 15% discount for 8+ hours
-    }
+    const price = pitch.price; // Fixed 1 hour pricing
 
     // Update pricing display in summary
     this.appState.updateBookingForm({ calculatedPrice: price });
@@ -634,26 +594,21 @@ export class BookingForm {
   }
 
   renderTimeSlots() {
-    const timeSlots = this.dataGenerator.generateTimeSlots(); // Assume this returns an array of time objects like { time: '9:00 AM', isBooked: false }
+    const timeSlots = this.dataGenerator.generateTimeSlots();
     const bookingForm = this.appState.getBookingForm();
-    const duration = bookingForm.duration || 1;
     const selectedDate = bookingForm.selectedDate;
 
-    if (!selectedDate) return ''; // Don't render time slots if no date is selected
+    if (!selectedDate) return '';
 
     return timeSlots.map(slot => {
-      // Check if this slot conflicts with duration
-      const isAvailable = this.isTimeSlotAvailableForDuration(slot.time, duration);
       const isSelected = slot.time === bookingForm.selectedTime;
-      const isBooked = slot.isBooked; // Assuming this comes from DataGenerator or API
+      const isBooked = slot.isBooked;
 
       return `
-        <div class="time-slot ${isBooked ? 'booked' : ''} ${!isAvailable ? 'booked' : ''} ${isSelected ? 'selected' : ''}" 
+        <div class="time-slot ${isBooked ? 'booked' : ''} ${isSelected ? 'selected' : ''}" 
              data-time="${slot.time}" 
-             ${isBooked ? 'data-booked="true"' : ''}
-             ${!isAvailable ? 'title="Not enough consecutive time available"' : ''}>
+             ${isBooked ? 'data-booked="true"' : ''}>
           ${slot.time}
-          ${duration > 1 ? `<br><small>+${duration-1}h</small>` : ''}
         </div>
       `;
     }).join('');

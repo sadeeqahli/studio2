@@ -11,6 +11,7 @@ import { ProfilePage } from '../pages/ProfilePage.js';
 import { ShopPage } from '../pages/ShopPage.js';
 import { CommunityPage } from '../pages/CommunityPage.js';
 import { AnalyticsPage } from '../pages/AnalyticsPage.js';
+import { OwnerDashboardPage } from '../pages/OwnerDashboardPage.js';
 
 export class Router {
   constructor(appState) {
@@ -53,6 +54,7 @@ export class Router {
     this.routes.set('/shop', () => new ShopPage(this.appState, this));
     this.routes.set('/community', () => new CommunityPage(this.appState, this));
     this.routes.set('/dashboard/analytics', () => new AnalyticsPage(this.appState, this));
+    this.routes.set('/owner/dashboard', () => new OwnerDashboardPage(this.appState, this));
   }
 
   init() {
