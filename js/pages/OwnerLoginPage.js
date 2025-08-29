@@ -17,11 +17,11 @@ export class OwnerLoginPage {
             <form class="owner-login-form">
               <div class="form-group">
                 <label class="form-label">Email Address</label>
-                <input type="email" class="form-input" name="email" value="owner@sporthub.ng" required>
+                <input type="email" class="form-input" name="email" required>
               </div>
               <div class="form-group">
                 <label class="form-label">Password</label>
-                <input type="password" class="form-input" name="password" value="owner123" required>
+                <input type="password" class="form-input" name="password" required>
               </div>
               <div class="flex justify-between items-center mb-4">
                 <label class="flex items-center gap-2 text-sm">
@@ -60,21 +60,33 @@ export class OwnerLoginPage {
 
   mount() {
     const form = document.querySelector('.owner-login-form');
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const formData = new FormData(form);
       const email = formData.get('email');
       const password = formData.get('password');
+      
+      const submitBtn = form.querySelector('button[type="submit"]');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Logging in...';
 
-      const success = this.appState.ownerLogin(email, password);
+      try {
+        const success = await this.appState.ownerLogin(email, password);
 
-      if (success) {
-        this.showToast('Login successful! Welcome to your dashboard.', 'success');
-        setTimeout(() => {
-          this.router.navigate('/owner/dashboard');
-        }, 1000);
-      } else {
-        this.showToast('Invalid credentials. Please try again.', 'error');
+        if (success) {
+          this.showToast('Login successful! Welcome to your dashboard.', 'success');
+          setTimeout(() => {
+            this.router.navigate('/owner/dashboard');
+          }, 1000);
+        } else {
+          this.showToast('Invalid credentials or not an owner account.', 'error');
+        }
+      } catch (error) {
+        console.error('Owner login error:', error);
+        this.showToast('An error occurred. Please try again.', 'error');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Log In to Dashboard';
       }
     });
   }

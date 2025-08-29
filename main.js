@@ -15,6 +15,32 @@ class App {
   }
 
   async init() {
+    try {
+      // Initialize authentication first
+      await this.appState.initializeAuth();
+      
+      // Generate initial data
+      this.appState.setPitches(this.dataGenerator.generatePitches());
+      this.appState.setProducts(this.dataGenerator.generateProducts());
+      this.appState.setAnalyticsData(this.dataGenerator.generateAnalyticsData());
+      this.appState.setPlayerListings(this.dataGenerator.generatePlayerListings());
+      
+      // Initialize theme
+      this.themeManager.init();
+      
+      // Initialize router
+      this.router.init();
+      
+      // Set up global event listeners
+      this.setupGlobalEventListeners();
+    } catch (error) {
+      console.error('App initialization error:', error);
+      // Continue with app initialization even if auth fails
+      this.continueInitWithoutAuth();
+    }
+  }
+
+  continueInitWithoutAuth() {
     // Generate initial data
     this.appState.setPitches(this.dataGenerator.generatePitches());
     this.appState.setProducts(this.dataGenerator.generateProducts());

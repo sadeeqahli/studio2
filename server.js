@@ -19,6 +19,7 @@ app.use(express.static('.'));
 
 // Environment variables
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
+const CLERK_PUBLISHABLE_KEY = process.env.CLERK_PUBLISHABLE_KEY;
 const PORT = process.env.PORT || 5000;
 
 // Paystack API base URL
@@ -428,6 +429,13 @@ app.get('/api/bookings/:bookingId', async (req, res) => {
     console.error('Get booking error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
+});
+
+// API endpoint to get Clerk publishable key
+app.get('/api/config', (req, res) => {
+  res.json({
+    clerkPublishableKey: CLERK_PUBLISHABLE_KEY
+  });
 });
 
 // Serve frontend

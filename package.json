@@ -14,6 +14,7 @@
     "vite": "^6.3.5"
   },
   "dependencies": {
+    "@clerk/clerk-js": "^5.90.0",
     "@faker-js/faker": "^9.9.0",
     "@replit/database": "^3.0.1",
     "axios": "^1.11.0",

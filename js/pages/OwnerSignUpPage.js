@@ -79,7 +79,7 @@ export class OwnerSignUpPage {
 
   mount() {
     const form = document.querySelector('.owner-signup-form');
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const formData = new FormData(form);
       const businessName = formData.get('businessName');
@@ -106,18 +106,88 @@ export class OwnerSignUpPage {
         return;
       }
 
-      this.appState.ownerSignup({ 
-        businessName, 
-        ownerName, 
-        email, 
-        phone, 
-        address 
-      });
-      this.showToast('Owner account created successfully! Welcome!', 'success');
+      const submitBtn = form.querySelector('button[type="submit"]');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Creating Account...';
+
+      try {
+        const result = await this.appState.ownerSignup({ 
+          businessName, 
+          ownerName, 
+          email, 
+          phone, 
+          address,
+          password
+        });
+        
+        if (result.requiresVerification) {
+          this.showVerificationForm(result.signUpAttempt);
+        } else if (result.success) {
+          this.showToast('Owner account created successfully! Welcome!', 'success');
+          setTimeout(() => {
+            this.router.navigate('/owner/dashboard');
+          }, 1000);
+        } else {
+          this.showToast(result.error || 'Failed to create account. Please try again.', 'error');
+        }
+      } catch (error) {
+        console.error('Owner signup error:', error);
+        this.showToast('An error occurred. Please try again.', 'error');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Create Owner Account';
+      }
+    });
+  }
+
+  showVerificationForm(signUpAttempt) {
+    const authCard = document.querySelector('.auth-card .card-body');
+    authCard.innerHTML = `
+      <a href="/" class="logo text-center block mb-6">SportHub</a>
+      <h2 class="text-2xl font-bold text-center mb-2">Verify Your Email</h2>
+      <p class="text-secondary text-center mb-8">We've sent a verification code to your email address.</p>
       
-      setTimeout(() => {
-        this.router.navigate('/owner/dashboard');
-      }, 1000);
+      <form class="verification-form">
+        <div class="form-group">
+          <label class="form-label">Verification Code</label>
+          <input type="text" class="form-input" name="code" placeholder="Enter 6-digit code" required>
+        </div>
+        <button type="submit" class="btn btn-primary w-full btn-lg">Verify Email</button>
+      </form>
+      
+      <p class="text-center text-sm text-secondary mt-6">
+        Didn't receive the code? <a href="#" class="text-green font-medium resend-code">Resend</a>
+      </p>
+    `;
+
+    const verificationForm = document.querySelector('.verification-form');
+    verificationForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(verificationForm);
+      const code = formData.get('code');
+      
+      const submitBtn = verificationForm.querySelector('button[type="submit"]');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Verifying...';
+
+      try {
+        const success = await this.appState.verifyEmail(code, signUpAttempt);
+        
+        if (success) {
+          this.showToast('Email verified successfully! Welcome to your dashboard!', 'success');
+          setTimeout(() => {
+            this.router.navigate('/owner/dashboard');
+          }, 1000);
+        } else {
+          this.showToast('Invalid verification code. Please try again.', 'error');
+        }
+      } catch (error) {
+        console.error('Verification error:', error);
+        this.showToast('Verification failed. Please try again.', 'error');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Verify Email';
+      }
     });
   }
 

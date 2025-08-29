@@ -1,8 +1,11 @@
 import { ApiService } from '../services/ApiService.js';
+import { initializeClerk } from '../config/clerk.js';
 
 export class AppState {
   constructor() {
     this.apiService = new ApiService();
+    this.clerk = null;
+    this.isClerkInitialized = false;
     this.state = {
       currentRoute: '/',
       pitches: [],
@@ -75,115 +78,264 @@ export class AppState {
     this.emit('stateChange', { prevState, newState: this.state });
   }
 
-  // Auth Methods
-  login(email, password) {
-    // Mock login logic
-    if (email === 'player@sporthub.ng' && password === 'password123') {
-      this.setState({
-        user: {
-          isAuthenticated: true,
-          name: 'Alex Iwobi',
-          email: email,
-          userType: 'player'
+  // Initialize Clerk
+  async initializeAuth() {
+    try {
+      this.clerk = await initializeClerk();
+      this.isClerkInitialized = true;
+      
+      // Check if user is already signed in
+      if (this.clerk.user) {
+        this.updateUserFromClerk();
+      }
+      
+      // Listen for auth changes
+      this.clerk.addListener(({ user }) => {
+        if (user) {
+          this.updateUserFromClerk();
+        } else {
+          this.logout();
         }
       });
-      this.emit('authChange', this.state.user);
-      return true;
+      
+      return this.clerk;
+    } catch (error) {
+      console.error('Failed to initialize authentication:', error);
+      throw error;
     }
-    return false;
+  }
+
+  // Update user state from Clerk user object
+  updateUserFromClerk() {
+    if (!this.clerk?.user) return;
+    
+    const clerkUser = this.clerk.user;
+    const userType = clerkUser.publicMetadata?.userType || 'player';
+    
+    this.setState({
+      user: {
+        isAuthenticated: true,
+        name: clerkUser.fullName || `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim(),
+        email: clerkUser.emailAddresses[0]?.emailAddress || '',
+        userType: userType,
+        businessName: clerkUser.publicMetadata?.businessName || '',
+        ownerName: clerkUser.publicMetadata?.ownerName || '',
+        phone: clerkUser.phoneNumbers[0]?.phoneNumber || '',
+        address: clerkUser.publicMetadata?.address || ''
+      }
+    });
+    this.emit('authChange', this.state.user);
+  }
+
+  // Auth Methods
+  async login(email, password) {
+    try {
+      if (!this.isClerkInitialized) {
+        await this.initializeAuth();
+      }
+      
+      const signInAttempt = await this.clerk.signIn.create({
+        identifier: email,
+        password: password,
+      });
+
+      if (signInAttempt.status === 'complete') {
+        await this.clerk.setActive({ session: signInAttempt.createdSessionId });
+        this.updateUserFromClerk();
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('Login error:', error);
+      return false;
+    }
   }
 
   async signup(userData) {
     try {
-      // Create user in backend
-      const response = await this.apiService.createUser({
-        email: userData.email,
+      if (!this.isClerkInitialized) {
+        await this.initializeAuth();
+      }
+      
+      const signUpAttempt = await this.clerk.signUp.create({
+        emailAddress: userData.email,
+        password: userData.password,
         firstName: userData.name.split(' ')[0] || userData.name,
         lastName: userData.name.split(' ').slice(1).join(' ') || '',
-        phone: userData.phone || '',
-        referredBy: userData.referralCode || null
       });
 
-      this.setState({
-        user: {
-          isAuthenticated: true,
-          name: userData.name,
+      // If email verification is required
+      if (signUpAttempt.status === 'missing_requirements') {
+        // Send verification email
+        await signUpAttempt.prepareEmailAddressVerification({ strategy: 'email_code' });
+        return { requiresVerification: true, signUpAttempt };
+      }
+
+      if (signUpAttempt.status === 'complete') {
+        // Set user metadata
+        await this.clerk.user.update({
+          publicMetadata: {
+            userType: 'player'
+          }
+        });
+        
+        // Create user in backend
+        const response = await this.apiService.createUser({
           email: userData.email,
-          userType: 'player'
-        },
-        apiUserId: response.userId,
-        referralWalletBalance: response.user.referralWalletBalance || 0
-      });
-      this.emit('authChange', this.state.user);
-      return true;
+          firstName: userData.name.split(' ')[0] || userData.name,
+          lastName: userData.name.split(' ').slice(1).join(' ') || '',
+          phone: userData.phone || '',
+          referredBy: userData.referralCode || null
+        });
+        
+        this.setState({
+          apiUserId: response.userId,
+          referralWalletBalance: response.user.referralWalletBalance || 0
+        });
+        
+        await this.clerk.setActive({ session: signUpAttempt.createdSessionId });
+        this.updateUserFromClerk();
+        return { success: true };
+      }
+      
+      return { success: false };
     } catch (error) {
       console.error('Signup error:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  async verifyEmail(code, signUpAttempt) {
+    try {
+      const completeSignUp = await signUpAttempt.attemptEmailAddressVerification({
+        code: code,
+      });
+
+      if (completeSignUp.status === 'complete') {
+        await this.clerk.setActive({ session: completeSignUp.createdSessionId });
+        this.updateUserFromClerk();
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('Email verification error:', error);
       return false;
     }
   }
 
-  ownerLogin(email, password) {
-    // Mock owner login logic
-    if (email === 'owner@sporthub.ng' && password === 'owner123') {
-      this.setState({
-        user: {
-          isAuthenticated: true,
-          name: 'SportHub Complex',
-          email: email,
-          userType: 'owner',
-          businessName: 'SportHub Complex',
-          ownerName: 'John Smith',
-          phone: '+234 803 123 4567',
-          address: '123 Sports Avenue, Lagos, Nigeria'
-        }
+  async ownerLogin(email, password) {
+    try {
+      if (!this.isClerkInitialized) {
+        await this.initializeAuth();
+      }
+      
+      const signInAttempt = await this.clerk.signIn.create({
+        identifier: email,
+        password: password,
       });
-      this.emit('authChange', this.state.user);
-      return true;
+
+      if (signInAttempt.status === 'complete') {
+        await this.clerk.setActive({ session: signInAttempt.createdSessionId });
+        
+        // Verify this is an owner account
+        if (this.clerk.user.publicMetadata?.userType === 'owner') {
+          this.updateUserFromClerk();
+          return true;
+        } else {
+          // This is not an owner account
+          await this.clerk.signOut();
+          return false;
+        }
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('Owner login error:', error);
+      return false;
     }
-    return false;
   }
 
   async ownerSignup(userData) {
     try {
-      // Create owner in backend
-      const response = await this.apiService.createOwner({
-        email: userData.email,
+      if (!this.isClerkInitialized) {
+        await this.initializeAuth();
+      }
+      
+      const signUpAttempt = await this.clerk.signUp.create({
+        emailAddress: userData.email,
+        password: userData.password,
         firstName: userData.ownerName.split(' ')[0] || userData.ownerName,
         lastName: userData.ownerName.split(' ').slice(1).join(' ') || '',
-        phone: userData.phone || ''
       });
 
-      this.setState({
-        user: {
-          isAuthenticated: true,
-          name: userData.businessName,
+      // If email verification is required
+      if (signUpAttempt.status === 'missing_requirements') {
+        await signUpAttempt.prepareEmailAddressVerification({ strategy: 'email_code' });
+        return { requiresVerification: true, signUpAttempt };
+      }
+
+      if (signUpAttempt.status === 'complete') {
+        // Set owner metadata
+        await this.clerk.user.update({
+          publicMetadata: {
+            userType: 'owner',
+            businessName: userData.businessName,
+            ownerName: userData.ownerName,
+            address: userData.address
+          }
+        });
+        
+        // Create owner in backend
+        const response = await this.apiService.createOwner({
           email: userData.email,
-          userType: 'owner',
-          businessName: userData.businessName,
-          ownerName: userData.ownerName,
-          phone: userData.phone,
-          address: userData.address
-        },
-        apiOwnerId: response.ownerId
-      });
-      this.emit('authChange', this.state.user);
-      return true;
+          firstName: userData.ownerName.split(' ')[0] || userData.ownerName,
+          lastName: userData.ownerName.split(' ').slice(1).join(' ') || '',
+          phone: userData.phone || ''
+        });
+        
+        this.setState({
+          apiOwnerId: response.ownerId
+        });
+        
+        await this.clerk.setActive({ session: signUpAttempt.createdSessionId });
+        this.updateUserFromClerk();
+        return { success: true };
+      }
+      
+      return { success: false };
     } catch (error) {
       console.error('Owner signup error:', error);
-      return false;
+      return { success: false, error: error.message };
     }
   }
 
-  logout() {
-    this.setState({
-      user: {
-        isAuthenticated: false,
-        name: '',
-        email: '',
-        userType: null
+  async logout() {
+    try {
+      if (this.clerk) {
+        await this.clerk.signOut();
       }
-    });
-    this.emit('authChange', this.state.user);
+      
+      this.setState({
+        user: {
+          isAuthenticated: false,
+          name: '',
+          email: '',
+          userType: null,
+          businessName: '',
+          ownerName: '',
+          phone: '',
+          address: ''
+        },
+        apiUserId: null,
+        apiOwnerId: null,
+        referralWalletBalance: 0
+      });
+      this.emit('authChange', this.state.user);
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   }
 
 
