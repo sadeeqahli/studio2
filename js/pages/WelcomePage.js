@@ -8,8 +8,9 @@ export class WelcomePage {
           <h2 class="welcome-title">The Ultimate Football Experience</h2>
           <p class="welcome-subtitle">Book pitches, find teammates, and manage your games—all in one place.</p>
           <div class="welcome-actions">
-            <a href="/signup" class="btn btn-primary btn-lg">Get Started</a>
-            <a href="/login" class="btn btn-secondary btn-lg">I Already Have an Account</a>
+            <a href="/signup" class="btn btn-primary btn-lg">Join as Player</a>
+            <a href="/owner/signup" class="btn btn-secondary btn-lg">List Your Pitch</a>
+            <a href="/about" class="btn btn-ghost btn-lg">Learn More</a>
           </div>
           <div class="mt-4 text-center">
             <p class="text-sm text-secondary">

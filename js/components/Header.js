@@ -92,28 +92,51 @@ export class Header {
   }
 
   renderAuthenticatedNav(currentRoute, name) {
+    const userType = this.appState.state.user.userType;
+    const cartItemCount = this.appState.getCartItemCount();
+
+    if (userType === 'owner') {
+      return `
+        <nav class="nav-menu">
+          <a href="/owner/dashboard" class="nav-link">Owner Dashboard</a>
+        </nav>
+        <div class="nav-actions">
+          <div class="user-menu">
+            <button class="user-btn">
+              🏢 ${this.appState.state.user.name}
+            </button>
+            <div class="user-dropdown">
+              <span class="user-type">Pitch Owner</span>
+              <button class="logout-btn">Logout</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
     return `
-      <a href="/dashboard" class="nav-link ${currentRoute.startsWith('/dashboard') ? 'active' : ''}">Dashboard</a>
-      <a href="/shop" class="nav-link ${currentRoute === '/shop' ? 'active' : ''}">Shop</a>
-      <a href="/community" class="nav-link ${currentRoute === '/community' ? 'active' : ''}">Community</a>
-      <a href="/owner/dashboard" class="nav-link">Owner Portal</a>
-
-
-      <div class="profile-dropdown ml-4">
-        <button class="btn btn-ghost">
-          ${name} ⌄
-        </button>
-        <div class="profile-dropdown-content">
-          <a href="/dashboard/profile" class="dropdown-link">Profile</a>
-          <a href="/dashboard/history" class="dropdown-link">Booking History</a>
-          <a href="/dashboard/analytics" class="dropdown-link">Analytics</a>
-          <hr class="border-t border-color my-1">
-          <a href="#" class="dropdown-link" data-logout>Logout</a>
+      <nav class="nav-menu">
+        <a href="/dashboard" class="nav-link ${currentRoute.startsWith('/dashboard') ? 'active' : ''}">Dashboard</a>
+        <a href="/shop" class="nav-link ${currentRoute === '/shop' ? 'active' : ''}">Shop</a>
+        <a href="/community" class="nav-link ${currentRoute === '/community' ? 'active' : ''}">Community</a>
+      </nav>
+      <div class="nav-actions">
+        <a href="/shop" class="cart-icon">
+          🛒
+          ${cartItemCount > 0 ? `<span class="cart-count">${cartItemCount}</span>` : ''}
+        </a>
+        <div class="user-menu">
+          <button class="user-btn">
+            👤 ${this.appState.state.user.name}
+          </button>
+          <div class="user-dropdown">
+            <span class="user-type">Player</span>
+            <a href="/dashboard/profile">Profile</a>
+            <a href="/dashboard/analytics">Analytics</a>
+            <button class="logout-btn">Logout</button>
+          </div>
         </div>
       </div>
-      <button class="theme-toggle" data-theme-toggle aria-label="Toggle theme">
-        🌙
-      </button>
     `;
   }
 
@@ -129,13 +152,26 @@ export class Header {
   }
 
   renderAuthenticatedMobileNav(name) {
+    const userType = this.appState.state.user.userType;
+
+    if (userType === 'owner') {
+      return `
+        <a href="/owner/dashboard" class="mobile-nav-link">Owner Dashboard</a>
+        <a href="#" class="mobile-nav-link" data-logout>Logout</a>
+        <div style="padding: 1rem 0;">
+          <button class="btn btn-ghost w-full" data-theme-toggle>
+            🌙 Toggle Theme
+          </button>
+        </div>
+      `;
+    }
+
     return `
       <a href="/dashboard" class="mobile-nav-link">Dashboard</a>
       <a href="/dashboard/profile" class="mobile-nav-link">Profile</a>
       <a href="/dashboard/history" class="mobile-nav-link">Booking History</a>
       <a href="/shop" class="mobile-nav-link">Shop</a>
       <a href="/community" class="mobile-nav-link">Community</a>
-      <a href="/owner/dashboard" class="mobile-nav-link">Owner Portal</a>
       <a href="#" class="mobile-nav-link" data-logout>Logout</a>
       <div style="padding: 1rem 0;">
         <button class="btn btn-ghost w-full" data-theme-toggle>
@@ -154,5 +190,20 @@ export class Header {
         this.router.navigate('/login');
       });
     }
+
+    const userBtn = document.querySelector('.user-btn');
+    const userDropdown = document.querySelector('.user-dropdown');
+    if (userBtn && userDropdown) {
+      userBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        userDropdown.style.display = userDropdown.style.display === 'block' ? 'none' : 'block';
+      });
+    }
+
+    document.addEventListener('click', (e) => {
+      if (userDropdown && !userDropdown.contains(e.target) && userBtn && !userBtn.contains(e.target)) {
+        userDropdown.style.display = 'none';
+      }
+    });
   }
 }

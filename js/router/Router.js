@@ -94,11 +94,29 @@ export class Router {
       '/dashboard', 
       '/dashboard/history', 
       '/dashboard/profile', 
-      '/dashboard/analytics'
+      '/dashboard/analytics',
+      '/shop',
+      '/community'
     ];
     const ownerRoutes = ['/owner/dashboard'];
     const playerAuthRoutes = ['/login', '/signup'];
     const ownerAuthRoutes = ['/owner/login', '/owner/signup'];
+    const publicRoutes = ['/', '/about', '/care'];
+
+    // Block any cross-access attempts first (highest priority)
+    if (isAuthenticated) {
+      // Block owners from accessing ANY player routes
+      if (userType === 'owner' && (playerRoutes.some(p => path.startsWith(p)) || playerAuthRoutes.includes(path))) {
+        this.navigate('/owner/dashboard');
+        return;
+      }
+      
+      // Block players from accessing ANY owner routes
+      if (userType === 'player' && (ownerRoutes.some(p => path.startsWith(p)) || ownerAuthRoutes.includes(path))) {
+        this.navigate('/dashboard');
+        return;
+      }
+    }
 
     // Redirect unauthenticated users from protected routes
     if (playerRoutes.some(p => path.startsWith(p)) && !isAuthenticated) {
@@ -111,7 +129,7 @@ export class Router {
       return;
     }
 
-    // Redirect authenticated users from auth routes
+    // Redirect authenticated users from auth routes to their respective dashboards
     if (playerAuthRoutes.includes(path) && isAuthenticated && userType === 'player') {
       this.navigate('/dashboard');
       return;
@@ -119,18 +137,6 @@ export class Router {
 
     if (ownerAuthRoutes.includes(path) && isAuthenticated && userType === 'owner') {
       this.navigate('/owner/dashboard');
-      return;
-    }
-
-    // Redirect owners trying to access player routes
-    if (playerRoutes.some(p => path.startsWith(p)) && isAuthenticated && userType === 'owner') {
-      this.navigate('/owner/dashboard');
-      return;
-    }
-
-    // Redirect players trying to access owner routes
-    if (ownerRoutes.some(p => path.startsWith(p)) && isAuthenticated && userType === 'player') {
-      this.navigate('/dashboard');
       return;
     }
     
