@@ -150,6 +150,4 @@ export class Router {
     }
   }
 }
-import { OwnerDashboardPage } from '../pages/OwnerDashboardPage.js';
 
-    this.routes.set('/owner/dashboard', () => new OwnerDashboardPage(this.appState, this));
