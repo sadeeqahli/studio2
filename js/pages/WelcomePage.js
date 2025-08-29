@@ -11,6 +11,12 @@ export class WelcomePage {
             <a href="/signup" class="btn btn-primary btn-lg">Get Started</a>
             <a href="/login" class="btn btn-secondary btn-lg">I Already Have an Account</a>
           </div>
+          <div class="mt-4 text-center">
+            <p class="text-sm text-secondary">
+              Own a sports facility? 
+              <a href="/owner/signup" class="text-green font-medium">Register as Owner</a>
+            </p>
+          </div>
         </div>
         <div class="welcome-bg"></div>
       </div>
@@ -56,7 +62,7 @@ export class WelcomePage {
           background-size: cover;
           background-position: center;
         }
-        
+
         @media (max-width: 768px) {
           .welcome-container {
             grid-template-columns: 1fr;

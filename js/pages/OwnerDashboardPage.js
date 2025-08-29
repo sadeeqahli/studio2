@@ -9,6 +9,34 @@ export class OwnerDashboardPage {
   }
 
   render() {
+    // Check if user is authenticated and is an owner
+    if (!this.appState.state.user.isAuthenticated || this.appState.state.user.userType !== 'owner') {
+      return `
+        <div class="auth-container">
+          <div class="auth-card card">
+            <div class="card-body text-center">
+              <h2 class="text-2xl font-bold mb-4">Authentication Error</h2>
+              <p class="text-secondary mb-6">Could not verify your session. Please try logging in again.</p>
+              <a href="/owner/login" class="btn btn-primary">Owner Login</a>
+            </div>
+          </div>
+        </div>
+        <style>
+          .auth-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: var(--bg-secondary);
+          }
+          .auth-card {
+            width: 100%;
+            max-width: 450px;
+          }
+        </style>
+      `;
+    }
+
     return `
       ${this.header.render()}
       

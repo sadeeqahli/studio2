@@ -12,6 +12,8 @@ import { ShopPage } from '../pages/ShopPage.js';
 import { CommunityPage } from '../pages/CommunityPage.js';
 import { AnalyticsPage } from '../pages/AnalyticsPage.js';
 import { OwnerDashboardPage } from '../pages/OwnerDashboardPage.js';
+import { OwnerLoginPage } from '../pages/OwnerLoginPage.js';
+import { OwnerSignUpPage } from '../pages/OwnerSignUpPage.js';
 
 export class Router {
   constructor(appState) {
@@ -55,6 +57,8 @@ export class Router {
     this.routes.set('/community', () => new CommunityPage(this.appState, this));
     this.routes.set('/dashboard/analytics', () => new AnalyticsPage(this.appState, this));
     this.routes.set('/owner/dashboard', () => new OwnerDashboardPage(this.appState, this));
+    this.routes.set('/owner/login', () => new OwnerLoginPage(this.appState, this));
+    this.routes.set('/owner/signup', () => new OwnerSignUpPage(this.appState, this));
   }
 
   init() {
@@ -84,23 +88,48 @@ export class Router {
   handleRoute() {
     const path = window.location.pathname;
     const isAuthenticated = this.appState.state.user.isAuthenticated;
+    const userType = this.appState.state.user.userType;
 
-    const protectedRoutes = [
+    const playerRoutes = [
       '/dashboard', 
       '/dashboard/history', 
       '/dashboard/profile', 
       '/dashboard/analytics'
     ];
-    const authRoutes = ['/login', '/signup'];
+    const ownerRoutes = ['/owner/dashboard'];
+    const playerAuthRoutes = ['/login', '/signup'];
+    const ownerAuthRoutes = ['/owner/login', '/owner/signup'];
 
     // Redirect unauthenticated users from protected routes
-    if (protectedRoutes.some(p => path.startsWith(p)) && !isAuthenticated) {
+    if (playerRoutes.some(p => path.startsWith(p)) && !isAuthenticated) {
       this.navigate('/login');
       return;
     }
 
+    if (ownerRoutes.some(p => path.startsWith(p)) && !isAuthenticated) {
+      this.navigate('/owner/login');
+      return;
+    }
+
     // Redirect authenticated users from auth routes
-    if (authRoutes.includes(path) && isAuthenticated) {
+    if (playerAuthRoutes.includes(path) && isAuthenticated && userType === 'player') {
+      this.navigate('/dashboard');
+      return;
+    }
+
+    if (ownerAuthRoutes.includes(path) && isAuthenticated && userType === 'owner') {
+      this.navigate('/owner/dashboard');
+      return;
+    }
+
+    // Redirect owners trying to access player routes
+    if (playerRoutes.some(p => path.startsWith(p)) && isAuthenticated && userType === 'owner') {
+      this.navigate('/owner/dashboard');
+      return;
+    }
+
+    // Redirect players trying to access owner routes
+    if (ownerRoutes.some(p => path.startsWith(p)) && isAuthenticated && userType === 'player') {
       this.navigate('/dashboard');
       return;
     }

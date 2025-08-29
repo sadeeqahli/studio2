@@ -9,7 +9,12 @@ export class AppState {
       user: {
         isAuthenticated: false,
         name: '',
-        email: ''
+        email: '',
+        userType: null,
+        businessName: '',
+        ownerName: '',
+        phone: '',
+        address: ''
       },
       filters: {
         search: '',
@@ -68,7 +73,8 @@ export class AppState {
         user: {
           isAuthenticated: true,
           name: 'Alex Iwobi',
-          email: email
+          email: email,
+          userType: 'player'
         }
       });
       this.emit('authChange', this.state.user);
@@ -82,7 +88,45 @@ export class AppState {
       user: {
         isAuthenticated: true,
         name: userData.name,
-        email: userData.email
+        email: userData.email,
+        userType: 'player'
+      }
+    });
+    this.emit('authChange', this.state.user);
+  }
+
+  ownerLogin(email, password) {
+    // Mock owner login logic
+    if (email === 'owner@sporthub.ng' && password === 'owner123') {
+      this.setState({
+        user: {
+          isAuthenticated: true,
+          name: 'SportHub Complex',
+          email: email,
+          userType: 'owner',
+          businessName: 'SportHub Complex',
+          ownerName: 'John Smith',
+          phone: '+234 803 123 4567',
+          address: '123 Sports Avenue, Lagos, Nigeria'
+        }
+      });
+      this.emit('authChange', this.state.user);
+      return true;
+    }
+    return false;
+  }
+
+  ownerSignup(userData) {
+    this.setState({
+      user: {
+        isAuthenticated: true,
+        name: userData.businessName,
+        email: userData.email,
+        userType: 'owner',
+        businessName: userData.businessName,
+        ownerName: userData.ownerName,
+        phone: userData.phone,
+        address: userData.address
       }
     });
     this.emit('authChange', this.state.user);
@@ -93,7 +137,8 @@ export class AppState {
       user: {
         isAuthenticated: false,
         name: '',
-        email: ''
+        email: '',
+        userType: null
       }
     });
     this.emit('authChange', this.state.user);
