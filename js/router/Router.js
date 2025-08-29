@@ -14,6 +14,9 @@ import { AnalyticsPage } from '../pages/AnalyticsPage.js';
 import { OwnerDashboardPage } from '../pages/OwnerDashboardPage.js';
 import { OwnerLoginPage } from '../pages/OwnerLoginPage.js';
 import { OwnerSignUpPage } from '../pages/OwnerSignUpPage.js';
+import { TeamCreationPage } from '../pages/TeamCreationPage.js';
+import { TeamManagementPage } from '../pages/TeamManagementPage.js';
+import { TeamJoinPage } from '../pages/TeamJoinPage.js';
 
 export class Router {
   constructor(appState) {
@@ -59,6 +62,22 @@ export class Router {
     this.routes.set('/owner/dashboard', () => new OwnerDashboardPage(this.appState, this));
     this.routes.set('/owner/login', () => new OwnerLoginPage(this.appState, this));
     this.routes.set('/owner/signup', () => new OwnerSignUpPage(this.appState, this));
+    
+    // Team and Split Payment Routes
+    this.routes.set('/team/create', () => new TeamCreationPage(this.appState, this));
+    this.routes.set(/^\/team\/(.+)\/join$/, (matches) => {
+      const teamId = matches[1];
+      return new TeamJoinPage(this.appState, this, teamId);
+    });
+    this.routes.set(/^\/team\/(.+)$/, (matches) => {
+      const teamId = matches[1];
+      const team = this.appState.getTeam(teamId);
+      if (!team) {
+        this.navigate('/dashboard');
+        return null;
+      }
+      return new TeamManagementPage(this.appState, this, teamId);
+    });
   }
 
   init() {
@@ -96,7 +115,8 @@ export class Router {
       '/dashboard/profile', 
       '/dashboard/analytics',
       '/shop',
-      '/community'
+      '/community',
+      '/team'
     ];
     const ownerRoutes = ['/owner/dashboard'];
     const playerAuthRoutes = ['/login', '/signup'];

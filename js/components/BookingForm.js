@@ -124,7 +124,29 @@ export class BookingForm {
                     >
                     <span>Add to Card (Pay Later)</span>
                   </label>
+                  <label class="payment-option">
+                    <input 
+                      type="radio" 
+                      name="paymentMethod" 
+                      value="split-payment"
+                      ${bookingForm.paymentMethod === 'split-payment' ? 'checked' : ''}
+                    >
+                    <span>Split Payment with Team</span>
+                  </label>
                 </div>
+                
+                ${bookingForm.paymentMethod === 'split-payment' ? `
+                  <div class="split-payment-info">
+                    <div class="alert-info">
+                      <h4 class="font-semibold mb-2">Split Payment Process:</h4>
+                      <ul class="text-sm space-y-1">
+                        <li>• Create a team and invite your teammates</li>
+                        <li>• Each member pays their share externally</li>
+                        <li>• Confirm contributions and complete booking</li>
+                      </ul>
+                    </div>
+                  </div>
+                ` : ''}
               </div>
             </form>
           </div>
@@ -132,9 +154,15 @@ export class BookingForm {
           ${this.renderBookingSummary()}
 
           <div class="booking-actions">
-            <button class="btn btn-primary btn-lg w-full" data-confirm-booking>
-              Confirm Booking
-            </button>
+            ${bookingForm.paymentMethod === 'split-payment' ? `
+              <button class="btn btn-primary btn-lg w-full" data-create-team>
+                Create Team & Split Payment
+              </button>
+            ` : `
+              <button class="btn btn-primary btn-lg w-full" data-confirm-booking>
+                Confirm Booking
+              </button>
+            `}
           </div>
         ` : ''}
       </div>
@@ -468,6 +496,8 @@ export class BookingForm {
           this.appState.updateBookingForm({ specialRequests: value });
         } else if (name === 'paymentMethod') {
           this.appState.updateBookingForm({ paymentMethod: value });
+          // Re-render to show/hide split payment info
+          this.refreshBookingForm();
         }
 
         // Update summary if needed
@@ -482,6 +512,14 @@ export class BookingForm {
     if (confirmButton) {
       confirmButton.addEventListener('click', () => {
         this.handleBookingConfirmation();
+      });
+    }
+
+    // Create team for split payment
+    const createTeamButton = document.querySelector('[data-create-team]');
+    if (createTeamButton) {
+      createTeamButton.addEventListener('click', () => {
+        this.handleTeamCreation();
       });
     }
   }
@@ -538,6 +576,37 @@ export class BookingForm {
 
     // Navigate to confirmation
     window.history.pushState({}, '', `/dashboard/receipt/${booking.id}`);
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  }
+
+  handleTeamCreation() {
+    const pitch = this.appState.getSelectedPitch();
+    const bookingForm = this.appState.getBookingForm();
+
+    // Validate form
+    const requiredFields = ['name', 'email', 'phone'];
+    const missingFields = requiredFields.filter(field => 
+      !bookingForm.customerInfo[field]?.trim()
+    );
+
+    if (missingFields.length > 0) {
+      this.showToast(`Please fill in: ${missingFields.join(', ')}`, 'error');
+      return;
+    }
+
+    if (!bookingForm.selectedDate || !bookingForm.selectedTime) {
+      this.showToast('Please select date and time', 'error');
+      return;
+    }
+
+    // Navigate to team creation page with booking details
+    const params = new URLSearchParams({
+      pitchId: pitch.id,
+      date: bookingForm.selectedDate,
+      time: bookingForm.selectedTime
+    });
+
+    window.history.pushState({}, '', `/team/create?${params.toString()}`);
     window.dispatchEvent(new PopStateEvent('popstate'));
   }
 

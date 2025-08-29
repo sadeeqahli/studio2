@@ -1479,3 +1479,127 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 
 .hover\:opacity-75:hover { opacity: 0.75; }
 .hover\:scale-105:hover { transform: scale(1.05); }
+
+/* Split Payment System Styles */
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-md);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.status-recruiting {
+  background-color: var(--light-blue);
+  color: var(--dark-blue);
+}
+
+.status-ready_to_pay {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.status-paid,
+.status-completed,
+.status-confirmed {
+  background-color: var(--light-green);
+  color: var(--dark-green);
+}
+
+.status-pending {
+  background-color: #fef2f2;
+  color: #dc2626;
+}
+
+.team-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.team-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.progress-bar {
+  width: 100%;
+  height: 0.5rem;
+  background-color: var(--bg-tertiary);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: var(--primary-green);
+  border-radius: var(--radius-sm);
+  transition: width 0.3s ease;
+}
+
+.split-calculation {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+}
+
+.member-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  transition: border-color 0.2s ease;
+}
+
+.member-card:hover {
+  border-color: var(--primary-green);
+}
+
+.member-avatar {
+  width: 2rem;
+  height: 2rem;
+  background-color: var(--primary-green);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.payment-details {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 0.75rem;
+  font-family: 'Courier New', monospace;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.alert-success {
+  background-color: var(--light-green);
+  color: var(--dark-green);
+  border: 1px solid var(--primary-green);
+  border-radius: var(--radius-md);
+  padding: 0.75rem;
+}
+
+.alert-warning {
+  background-color: #fef3c7;
+  color: #92400e;
+  border: 1px solid #f59e0b;
+  border-radius: var(--radius-md);
+  padding: 0.75rem;
+}
+
+.alert-info {
+  background-color: var(--light-blue);
+  color: var(--dark-blue);
+  border: 1px solid var(--primary-blue);
+  border-radius: var(--radius-md);
+  padding: 0.75rem;
+}

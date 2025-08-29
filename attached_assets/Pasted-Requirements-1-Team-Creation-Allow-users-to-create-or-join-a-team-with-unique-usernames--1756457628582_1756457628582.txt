@@ -1,0 +1,32 @@
+Requirements:
+1.  Team Creation:
+	•  Allow users to create or join a team with unique usernames.
+	•  Store team details (team ID, player usernames, pitch booking cost) in a database (e.g., SQLite, MongoDB, or Replit’s key-value store).
+	•  Example: A team of 10 players books a pitch for 10,000 NGN, splitting 1,000 NGN per player.
+2.  Split Payment Link Generation:
+	•  Calculate the split amount (e.g., 10,000 NGN ÷ 10 players = 1,000 NGN each).
+	•  Generate a shareable link in the app with:
+		•  A unique identifier (e.g., teamID_123).
+		•  A message: “Hi [Username], join your teammates to split 1,000 NGN for a 10,000 NGN pitch booking! Send your share to [Collector’s Payment Details].”
+		•  Use a deep link (e.g., myapp://booking/teamID_123) or web link that opens in the app or browser.
+	•  Send the link via push notifications or in-app messages to teammates.
+3.  External Split Payments:
+	•  Designate a “collector” (team creator or selected player) to receive split payments.
+	•  Players send their share (e.g., 1,000 NGN) to the collector via external methods (bank transfer, mobile money, USSD) outside the app.
+	•  The collector’s payment details (e.g., mobile money number, bank account) are shared securely via the link or notification.
+4.  Contribution Confirmation:
+	•  Allow the collector to manually confirm receipt of each player’s contribution in the app (e.g., a “Received” button per teammate).
+	•  Optional: Suggest an API (e.g., Paystack’s Bank Verification) to verify external payments, but prioritize manual confirmation to avoid extra costs.
+	•  Notify players of contribution status (e.g., “Player X paid 1,000 NGN”).
+5.  Paystack Integration for Final Payment:
+	•  Once all contributions are confirmed, the collector pays the full amount (e.g., 10,000 NGN) via Paystack in the app.
+	•  Use Paystack’s standard payment flow (not Split Payments) to avoid extra fees.
+	•  Implement Paystack’s Mobile SDK or Charge API:
+		•  Backend: Make a POST request to Paystack’s Initialize Transaction API (https://api.paystack.co/transaction/initialize) to get an access_code.
+		•  Frontend: Use the access_code to display Paystack’s payment UI (supporting card, bank transfer, USSD, mobile money).
+		•  Verify payment using Paystack’s Verify Transaction API or webhook.
+	•  Confirm the booking and notify all players upon successful payment.
+6.  User Experience:
+	•  Display a UI showing split amount, contribution status (e.g., progress bar or list), and booking status.
+	•  Send notifications (push or in-app) for updates (e.g., “All contributions received!” or “Pitch booked!”).
+	•  Set a contribution deadline (e.g., 24 hours).
