@@ -15,7 +15,7 @@ export class Header {
     return `
       <header class="header">
         <div class="header-content">
-          <a href="${isAuthenticated ? '/dashboard' : '/'}" class="logo">SportHub</a>
+          <a href="${isAuthenticated ? '/dashboard' : '/'}" class="logo">PitchLink</a>
 
           <nav class="nav-menu">
             ${navLinks}
@@ -28,7 +28,7 @@ export class Header {
 
         <div class="mobile-menu" data-mobile-menu>
           <div class="mobile-menu-header">
-            <span class="logo">SportHub</span>
+            <span class="logo">PitchLink</span>
             <button class="mobile-menu-close" data-mobile-menu-close aria-label="Close menu">
               ✕
             </button>
