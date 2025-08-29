@@ -1,5 +1,8 @@
+import { ApiService } from '../services/ApiService.js';
+
 export class AppState {
   constructor() {
+    this.apiService = new ApiService();
     this.state = {
       currentRoute: '/',
       pitches: [],
@@ -41,7 +44,11 @@ export class AppState {
       theme: 'light',
       teams: [],
       splitPayments: [],
-      currentTeam: null
+      currentTeam: null,
+      apiUserId: null,
+      apiOwnerId: null,
+      referralWalletBalance: 0,
+      dvaDetails: null
     };
     
     this.listeners = new Set();
@@ -86,16 +93,33 @@ export class AppState {
     return false;
   }
 
-  signup(userData) {
-    this.setState({
-      user: {
-        isAuthenticated: true,
-        name: userData.name,
+  async signup(userData) {
+    try {
+      // Create user in backend
+      const response = await this.apiService.createUser({
         email: userData.email,
-        userType: 'player'
-      }
-    });
-    this.emit('authChange', this.state.user);
+        firstName: userData.name.split(' ')[0] || userData.name,
+        lastName: userData.name.split(' ').slice(1).join(' ') || '',
+        phone: userData.phone || '',
+        referredBy: userData.referralCode || null
+      });
+
+      this.setState({
+        user: {
+          isAuthenticated: true,
+          name: userData.name,
+          email: userData.email,
+          userType: 'player'
+        },
+        apiUserId: response.userId,
+        referralWalletBalance: response.user.referralWalletBalance || 0
+      });
+      this.emit('authChange', this.state.user);
+      return true;
+    } catch (error) {
+      console.error('Signup error:', error);
+      return false;
+    }
   }
 
   ownerLogin(email, password) {
@@ -119,20 +143,35 @@ export class AppState {
     return false;
   }
 
-  ownerSignup(userData) {
-    this.setState({
-      user: {
-        isAuthenticated: true,
-        name: userData.businessName,
+  async ownerSignup(userData) {
+    try {
+      // Create owner in backend
+      const response = await this.apiService.createOwner({
         email: userData.email,
-        userType: 'owner',
-        businessName: userData.businessName,
-        ownerName: userData.ownerName,
-        phone: userData.phone,
-        address: userData.address
-      }
-    });
-    this.emit('authChange', this.state.user);
+        firstName: userData.ownerName.split(' ')[0] || userData.ownerName,
+        lastName: userData.ownerName.split(' ').slice(1).join(' ') || '',
+        phone: userData.phone || ''
+      });
+
+      this.setState({
+        user: {
+          isAuthenticated: true,
+          name: userData.businessName,
+          email: userData.email,
+          userType: 'owner',
+          businessName: userData.businessName,
+          ownerName: userData.ownerName,
+          phone: userData.phone,
+          address: userData.address
+        },
+        apiOwnerId: response.ownerId
+      });
+      this.emit('authChange', this.state.user);
+      return true;
+    } catch (error) {
+      console.error('Owner signup error:', error);
+      return false;
+    }
   }
 
   logout() {
@@ -583,5 +622,84 @@ export class AppState {
 
     this.emit('paystackPaymentCompleted', { splitPaymentId, transactionData, team });
     return split;
+  }
+
+  // API Integration Methods
+  async createApiBooking(bookingData) {
+    try {
+      const response = await this.apiService.createBooking({
+        userId: this.state.apiUserId,
+        ownerId: bookingData.ownerId,
+        amount: bookingData.amount,
+        referralCode: bookingData.referralCode
+      });
+      
+      this.emit('apiBookingCreated', response);
+      return response;
+    } catch (error) {
+      console.error('API booking creation error:', error);
+      throw error;
+    }
+  }
+
+  async loadOwnerDVA(ownerId) {
+    try {
+      const response = await this.apiService.getOwnerDVA(ownerId);
+      this.setState({ dvaDetails: response.dvaDetails });
+      return response.dvaDetails;
+    } catch (error) {
+      if (error.message.includes('DVA not found')) {
+        // Try to create DVA
+        try {
+          const createResponse = await this.apiService.createOwnerDVA(ownerId);
+          this.setState({ dvaDetails: createResponse.dvaDetails });
+          return createResponse.dvaDetails;
+        } catch (createError) {
+          console.error('DVA creation error:', createError);
+          throw createError;
+        }
+      }
+      throw error;
+    }
+  }
+
+  async applyReferralDiscount(bookingId) {
+    try {
+      const response = await this.apiService.applyReferralDiscount(this.state.apiUserId, bookingId);
+      this.setState({ referralWalletBalance: response.user.referralWalletBalance });
+      this.emit('referralDiscountApplied', response);
+      return response;
+    } catch (error) {
+      console.error('Apply referral discount error:', error);
+      throw error;
+    }
+  }
+
+  async loadUserData() {
+    try {
+      if (this.state.apiUserId) {
+        const response = await this.apiService.getUser(this.state.apiUserId);
+        this.setState({ referralWalletBalance: response.user.referralWalletBalance });
+      }
+    } catch (error) {
+      console.error('Load user data error:', error);
+    }
+  }
+
+  // Getters for API data
+  getDVADetails() {
+    return this.state.dvaDetails;
+  }
+
+  getReferralWalletBalance() {
+    return this.state.referralWalletBalance;
+  }
+
+  getApiUserId() {
+    return this.state.apiUserId;
+  }
+
+  getApiOwnerId() {
+    return this.state.apiOwnerId;
   }
 }

@@ -26,10 +26,10 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "PitchLink App"
+args = "PitchLink Backend"
 
 [[workflows.workflow]]
-name = "PitchLink App"
+name = "PitchLink Backend"
 author = "agent"
 
 [[workflows.workflow.tasks]]
@@ -42,10 +42,6 @@ outputType = "webview"
 
 [[ports]]
 localPort = 5000
-externalPort = 80
-
-[[ports]]
-localPort = 5173
 externalPort = 80
 
 [[ports]]

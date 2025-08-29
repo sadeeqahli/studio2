@@ -30,6 +30,11 @@ export class SignUpPage {
                 <label class="form-label">Confirm Password</label>
                 <input type="password" class="form-input" name="confirmPassword" required>
               </div>
+              <div class="form-group">
+                <label class="form-label">Referral Code (Optional)</label>
+                <input type="text" class="form-input" name="referralCode" placeholder="Enter referral code to earn ₦100">
+                <p class="text-xs text-secondary mt-1">If you were referred by someone, enter their code here</p>
+              </div>
               <button type="submit" class="btn btn-primary w-full btn-lg mt-4">Create Account</button>
             </form>
             
@@ -64,6 +69,7 @@ export class SignUpPage {
       const email = formData.get('email');
       const password = formData.get('password');
       const confirmPassword = formData.get('confirmPassword');
+      const referralCode = formData.get('referralCode');
 
       if (password !== confirmPassword) {
         this.showToast('Passwords do not match.', 'error');
@@ -75,13 +81,21 @@ export class SignUpPage {
         return;
       }
 
-      this.appState.signup({ name, email });
-      this.showToast('Account created successfully! Welcome!', 'success');
-      
-      // Redirect to dashboard after a short delay
-      setTimeout(() => {
-        this.router.navigate('/dashboard');
-      }, 1000);
+      // Create account with backend integration
+      this.appState.signup({ name, email, referralCode }).then(success => {
+        if (success) {
+          this.showToast('Account created successfully! Welcome!', 'success');
+          // Redirect to dashboard after a short delay
+          setTimeout(() => {
+            this.router.navigate('/dashboard');
+          }, 1000);
+        } else {
+          this.showToast('Failed to create account. Please try again.', 'error');
+        }
+      }).catch(error => {
+        console.error('Signup error:', error);
+        this.showToast('An error occurred. Please try again.', 'error');
+      });
     });
   }
 

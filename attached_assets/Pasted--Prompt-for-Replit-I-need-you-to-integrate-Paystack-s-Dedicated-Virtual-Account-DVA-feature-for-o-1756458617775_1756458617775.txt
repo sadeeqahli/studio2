@@ -1,0 +1,91 @@
+
+Prompt for Replit:
+I need you to integrate Paystack’s Dedicated Virtual Account (DVA) feature for owners and a referral wallet system into my Node.js/Express.js application on Replit, using Replit’s built-in key-value database. The application handles bookings where users pay a dynamic amount  X  (e.g., ₦10,000) directly from their bank account to the owner’s DVA. Paystack deducts a 1% fee (capped at ₦300) when the DVA is credited. The platform takes a 10% fee (e.g., ₦1,000 for  X = 10,000 ) to cover Paystack’s fees (DVA fee + ₦50 withdrawal fee) and ensure the owner receives exactly 90% of  X  (e.g., ₦9,000) in their bank account after withdrawal, with the remaining platform fee as profit (e.g., ₦800 for  X = 10,000 , or ₦700 with referral cashback). Users earn ₦100 cashback per successful booking by an invited friend, credited to a non-withdrawable referral wallet for discounts on future bookings. Here’s the detailed implementation:
+1.  Environment Setup:
+	•  Install dependencies: npm install paystack-sdk express @replit/database dotenv axios.
+	•  Add to .env: PAYSTACK_SECRET_KEY (from Paystack Dashboard, Test/Live mode).
+	•  Initialize Replit Database: const Database = require("@replit/database"); const db = new Database();.
+2.  Database Structure (Replit key-value store):
+	•  Users: Key user:{userId}, value { email, firstName, lastName, phone, referralCode: unique string, referredBy: string, referralWalletBalance: number (default 0) }.
+	•  Owners: Key owner:{ownerId}, value { email, firstName, lastName, phone, dvaDetails: { accountNumber, bankName, accountName, dvaId } }.
+	•  Bookings: Key booking:{bookingId}, value { userId, ownerId, amount: number, status: "pending|success|failed", referralCode: string, transactionReference: string, createdAt: timestamp }.
+	•  ReferralCashbacks: Key cashback:{cashbackId}, value { userId, bookingId, amount: 100, createdAt: timestamp }.
+3.  Backend Implementation (Express.js):
+	•  Create Owner DVA:
+		•  Endpoint: POST /api/owners/:ownerId/dva
+		•  Logic:
+			•  Validate owner exists in owner:{ownerId}.
+			•  Use Paystack’s Create Dedicated Virtual Account API (POST https://api.paystack.co/dedicated_account).
+			•  Parameters: { customer: ownerId, preferred_bank: "titan-paystack" }.
+			•  Headers: { Authorization: "Bearer $PAYSTACK_SECRET_KEY" }.
+			•  Store response data.data (account_number, bank.name, account_name, id) in owner:{ownerId}.dvaDetails.
+			•  Return DVA details.
+		•  Error handling: Handle 400/401 errors (e.g., invalid customer, KYC required).
+	•  Fetch Owner DVA:
+		•  Endpoint: GET /api/owners/:ownerId/dva
+		•  Logic: Return owner:{ownerId}.dvaDetails or fetch via Paystack’s Fetch Dedicated Virtual Account API (GET https://api.paystack.co/dedicated_account/:dedicated_account_id).
+	•  Create Booking:
+		•  Endpoint: POST /api/bookings
+		•  Parameters: { userId, ownerId, amount, referralCode }.
+		•  Logic:
+			•  Validate amount (dynamic  X ) and owner’s DVA exists.
+			•  Calculate user payment:  Y = \frac{X + 50}{0.99}  if  X \leq 29,950 , else  Y = X + 350 .
+			•  Generate bookingId and transactionReference (unique).
+			•  Store in booking:{bookingId}: { userId, ownerId, amount: Y, status: "pending", referralCode, transactionReference, createdAt }.
+			•  Return DVA details for payment.
+	•  Handle Webhook:
+		•  Endpoint: POST /api/webhooks/paystack
+		•  Logic:
+			•  Verify webhook signature using PAYSTACK_SECRET_KEY and crypto module.
+			•  For charge.success:
+				•  Verify transaction (GET https://api.paystack.co/transaction/verify/:reference).
+				•  Calculate DVA fee:  \min(0.01 \times Y, 300) .
+				•  Amount credited:  Y - \min(0.01 \times Y, 300) .
+				•  Split: Owner’s DVA gets  0.9X + 50 ; platform gets  Y - \min(0.01 \times Y, 300) - (0.9X + 50) .
+				•  Update booking:{bookingId}.status to success.
+				•  If referralCode exists, find referrer’s user:{userId}, increment referralWalletBalance by 100, store in cashback:{cashbackId}.
+			•  For charge.failed: Update booking:{bookingId}.status to failed.
+	•  Apply Referral Discount:
+		•  Endpoint: POST /api/bookings/apply-discount
+		•  Parameters: { userId, bookingId }.
+		•  Logic:
+			•  Check user:{userId}.referralWalletBalance ≥ 100.
+			•  Reduce booking:{bookingId}.amount by 100, deduct 100 from referralWalletBalance.
+			•  Update records and return updated booking.
+4.  Frontend Implementation:
+	•  Display owner’s DVA details (accountNumber, bankName, accountName) on the booking page.
+	•  Show referralWalletBalance and option to apply ₦100 discount.
+	•  Notify users to make bank transfer of  \frac{X + 50}{0.99}  (rounded up) and await confirmation.
+5.  Dynamic Transaction Logic:
+	•  User pays  Y = \frac{X + 50}{0.99}  (for  X \leq 29,950 ) or  Y = X + 350  (for  X > 29,950 ).
+	•  Paystack fee:  \min(0.01 \times Y, 300) + 50 .
+	•  Owner’s DVA:  Y - \min(0.01 \times Y, 300) .
+	•  Split: Owner gets  0.9X + 50 ; platform gets  Y - \min(0.01 \times Y, 300) - (0.9X + 50) .
+	•  Profit: Platform fee minus  \min(0.01 \times Y, 300) + 50  (minus 100 if referral applies).
+	•  Example ( X = 10,000 ):
+		•  User pays:  Y = \frac{10,000 + 50}{0.99} \approx 10,102 .
+		•  Paystack fee:  0.01 \times 10,102 = 101.02 + 50 = 151.02 .
+		•  Owner’s DVA:  10,102 - 101.02 = 10,001 .
+		•  Split: Owner gets  0.9 \times 10,000 + 50 = 9,050 ; platform gets  10,001 - 9,050 = 951 .
+		•  Profit:  951 - 151.02 = 800  (or 700 with referral).
+6.  Referral Wallet:
+	•  On charge.success with valid referralCode, increment referrer’s referralWalletBalance by 100.
+	•  Restrict referralWalletBalance to discounts only (no withdrawal endpoint).
+	•  Allow users to apply ₦100 discount if balance ≥ 100.
+7.  Webhook Setup:
+	•  Set webhook URL in Paystack Dashboard: https://your-replit-project.repl.co/api/webhooks/paystack.
+	•  Handle charge.success, charge.failed, dedicatedaccount.assign.success, dedicatedaccount.assign.failed.
+8.  Security:
+	•  Secure PAYSTACK_SECRET_KEY in .env.
+	•  Validate webhook signatures.
+	•  Use HTTPS (Replit provides by default).
+9.  Testing:
+	•  Use Paystack’s Test Mode with test-bank.
+	•  Simulate bank transfers and test splits, referral cashback, and discounts.
+	•  Verify owner nets 90% of  X .
+10.  Dependencies:
+	•  paystack-sdk, express, @replit/database, dotenv, axios.
+11.  Assumptions:
+	•  Withdrawal fee is ₦50.
+	•  Owners complete KYC for DVA creation.
+	•  Platform covers fees (bearer: "account").

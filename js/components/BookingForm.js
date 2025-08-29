@@ -159,9 +159,23 @@ export class BookingForm {
                 Create Team & Split Payment
               </button>
             ` : `
-              <button class="btn btn-primary btn-lg w-full" data-confirm-booking>
-                Confirm Booking
-              </button>
+              <div class="space-y-3">
+                <button class="btn btn-primary btn-lg w-full" data-confirm-booking>
+                  Book with Paystack
+                </button>
+                
+                <div class="text-center text-sm text-secondary">
+                  <span>or</span>
+                </div>
+                
+                <a href="/dashboard/dva-book/${pitch.id}" class="btn btn-secondary btn-lg w-full">
+                  Pay with Bank Transfer (DVA)
+                </a>
+                
+                <p class="text-xs text-secondary text-center">
+                  DVA allows you to pay directly from your bank account with automatic confirmation
+                </p>
+              </div>
             `}
           </div>
         ` : ''}

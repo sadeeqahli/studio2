@@ -17,6 +17,7 @@ import { OwnerSignUpPage } from '../pages/OwnerSignUpPage.js';
 import { TeamCreationPage } from '../pages/TeamCreationPage.js';
 import { TeamManagementPage } from '../pages/TeamManagementPage.js';
 import { TeamJoinPage } from '../pages/TeamJoinPage.js';
+import { DVABookingPage } from '../pages/DVABookingPage.js';
 
 export class Router {
   constructor(appState) {
@@ -43,6 +44,16 @@ export class Router {
       }
       this.appState.setSelectedPitch(pitch);
       return new BookingPage(this.appState, this);
+    });
+    this.routes.set(/^\/dashboard\/dva-book\/(.+)$/, (matches) => {
+      const pitchId = matches[1];
+      const pitch = this.appState.getPitches().find(p => p.id === pitchId);
+      if (!pitch) {
+        this.navigate('/dashboard');
+        return null;
+      }
+      this.appState.setSelectedPitch(pitch);
+      return new DVABookingPage(this.appState, this);
     });
     this.routes.set('/dashboard/history', () => new BookingHistoryPage(this.appState, this));
     this.routes.set(/^\/dashboard\/receipt\/(.+)$/, (matches) => {
