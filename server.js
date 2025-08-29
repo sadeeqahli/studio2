@@ -1,5 +1,6 @@
 import express from 'express';
 import Database from '@replit/database';
+import DatabaseService from './database.js';
 import crypto from 'crypto';
 import axios from 'axios';
 import { fileURLToPath } from 'url';
@@ -10,6 +11,7 @@ const __dirname = dirname(__filename);
 
 const app = express();
 const db = new Database();
+const pgDb = new DatabaseService();
 
 // Middleware
 app.use(express.json());
@@ -59,8 +61,62 @@ const calculateSplit = (originalAmount, userPayment) => {
 };
 
 // Health check
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString() });
+app.get('/api/health', async (req, res) => {
+  const dbConnected = await pgDb.testConnection();
+  res.json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    database: dbConnected ? 'Connected' : 'Disconnected'
+  });
+});
+
+// PostgreSQL-based endpoints
+// Get all facilities
+app.get('/api/pg/facilities', async (req, res) => {
+  try {
+    const facilities = await pgDb.getAllFacilities();
+    res.json(facilities);
+  } catch (error) {
+    console.error('Get facilities error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Create a user (PostgreSQL)
+app.post('/api/pg/users', async (req, res) => {
+  try {
+    const { username, email, password, user_type, full_name, phone } = req.body;
+    
+    // Simple password hashing (in production, use bcrypt)
+    const password_hash = crypto.createHash('sha256').update(password).digest('hex');
+    
+    const userData = {
+      username,
+      email,
+      password_hash,
+      user_type,
+      full_name,
+      phone
+    };
+    
+    const user = await pgDb.createUser(userData);
+    res.json(user);
+  } catch (error) {
+    console.error('Create user error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get user bookings (PostgreSQL)
+app.get('/api/pg/users/:userId/bookings', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const bookings = await pgDb.getBookingsByUser(userId);
+    res.json(bookings);
+  } catch (error) {
+    console.error('Get user bookings error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 // Create User
