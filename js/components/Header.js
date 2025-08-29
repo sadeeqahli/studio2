@@ -11,21 +11,21 @@ export class Header {
 
     const navLinks = isAuthenticated ? this.renderAuthenticatedNav(currentRoute, name) : this.renderGuestNav(currentRoute);
     const mobileNavLinks = isAuthenticated ? this.renderAuthenticatedMobileNav(name) : this.renderGuestMobileNav();
-    
+
     return `
       <header class="header">
         <div class="header-content">
           <a href="${isAuthenticated ? '/dashboard' : '/'}" class="logo">SportHub</a>
-          
+
           <nav class="nav-menu">
             ${navLinks}
           </nav>
-          
-          <button class="mobile-menu-btn" data-mobile-menu-btn aria-label="Open menu">
+
+          <button class="mobile-menu-btn" data-mobile-menu aria-label="Open menu">
             ☰
           </button>
         </div>
-        
+
         <div class="mobile-menu" data-mobile-menu>
           <div class="mobile-menu-header">
             <span class="logo">SportHub</span>
@@ -38,7 +38,7 @@ export class Header {
           </nav>
         </div>
       </header>
-      
+
       <style>
         .cart-badge {
           background-color: var(--primary-green);
@@ -96,7 +96,9 @@ export class Header {
       <a href="/dashboard" class="nav-link ${currentRoute.startsWith('/dashboard') ? 'active' : ''}">Dashboard</a>
       <a href="/shop" class="nav-link ${currentRoute === '/shop' ? 'active' : ''}">Shop</a>
       <a href="/community" class="nav-link ${currentRoute === '/community' ? 'active' : ''}">Community</a>
-      
+      <a href="/owner/dashboard" class="nav-link">Owner Portal</a>
+
+
       <div class="profile-dropdown ml-4">
         <button class="btn btn-ghost">
           ${name} ⌄
@@ -133,6 +135,7 @@ export class Header {
       <a href="/dashboard/history" class="mobile-nav-link">Booking History</a>
       <a href="/shop" class="mobile-nav-link">Shop</a>
       <a href="/community" class="mobile-nav-link">Community</a>
+      <a href="/owner/dashboard" class="mobile-nav-link">Owner Portal</a>
       <a href="#" class="mobile-nav-link" data-logout>Logout</a>
       <div style="padding: 1rem 0;">
         <button class="btn btn-ghost w-full" data-theme-toggle>

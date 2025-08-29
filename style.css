@@ -779,6 +779,541 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   }
 }
 
+/* Owner Dashboard Styles */
+.owner-nav-tabs {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 2px solid var(--border-color);
+  margin-bottom: 2rem;
+}
+
+.nav-tab {
+  padding: 0.75rem 1.5rem;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-weight: 500;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.nav-tab:hover {
+  color: var(--text-primary);
+  background-color: var(--bg-secondary);
+}
+
+.nav-tab.active {
+  color: var(--primary-green);
+  border-bottom-color: var(--primary-green);
+}
+
+/* Overview Grid */
+.overview-grid .stats-row .stat-card {
+  background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.overview-grid .stats-row .stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.stat-icon {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--primary-green);
+  margin-bottom: 0.5rem;
+}
+
+.stat-label {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.quick-actions {
+  gap: 1rem;
+}
+
+.action-btn {
+  padding: 1.5rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.action-btn:hover {
+  background: var(--bg-tertiary);
+  transform: translateY(-1px);
+}
+
+/* Bookings Management */
+.bookings-table .table-header {
+  font-weight: 600;
+  background: var(--bg-tertiary);
+  border-bottom: 2px solid var(--border-color);
+}
+
+.bookings-table .table-row {
+  border-bottom: 1px solid var(--border-color);
+  transition: all 0.2s ease;
+}
+
+.bookings-table .table-row:hover {
+  background: var(--bg-secondary);
+}
+
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.status-badge.confirmed {
+  background: var(--light-green);
+  color: var(--dark-green);
+}
+
+.status-badge.pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-badge.cancelled {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.status-badge.paid {
+  background: var(--light-green);
+  color: var(--dark-green);
+}
+
+/* Calendar Grid */
+.calendar-grid {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+}
+
+.calendar-header .calendar-cell.header {
+  font-weight: 600;
+  text-align: center;
+  padding: 0.75rem;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-sm);
+}
+
+.calendar-row .calendar-cell {
+  padding: 0.5rem;
+  border-radius: var(--radius-sm);
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+}
+
+.calendar-cell.time {
+  font-weight: 500;
+  background: var(--bg-tertiary);
+  cursor: default;
+}
+
+.calendar-cell.slot.available {
+  background: var(--light-green);
+  color: var(--dark-green);
+}
+
+.calendar-cell.slot.booked {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.calendar-cell.slot:hover {
+  transform: scale(1.05);
+}
+
+.checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+/* Wallet Management */
+.wallet-card {
+  background: linear-gradient(135deg, var(--primary-green), var(--primary-blue));
+  color: white;
+  padding: 2rem;
+  border-radius: var(--radius-lg);
+  text-align: center;
+}
+
+.wallet-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.wallet-balance {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.wallet-label {
+  opacity: 0.9;
+  font-size: 0.875rem;
+}
+
+.wallet-actions {
+  margin-bottom: 2rem;
+}
+
+.action-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.action-card:hover {
+  background: var(--bg-tertiary);
+  transform: translateY(-2px);
+}
+
+.action-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.action-text {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.transaction-row {
+  transition: all 0.2s ease;
+}
+
+.transaction-row:hover {
+  background: var(--bg-secondary);
+}
+
+.transaction-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}
+
+.transaction-icon.credit {
+  background: var(--light-green);
+  color: var(--dark-green);
+}
+
+.transaction-icon.debit {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* Analytics Dashboard */
+.kpi-grid {
+  margin-bottom: 2rem;
+}
+
+.kpi-card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+}
+
+.kpi-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.kpi-title {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.kpi-trend {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+}
+
+.kpi-trend.up {
+  background: var(--light-green);
+  color: var(--dark-green);
+}
+
+.kpi-trend.down {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.kpi-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.kpi-subtitle {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.chart-card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.chart-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.chart-filter {
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.chart-canvas {
+  width: 100%;
+  height: 250px;
+}
+
+/* Upload Management */
+.upload-options {
+  margin-bottom: 2rem;
+}
+
+.upload-card {
+  background: var(--bg-secondary);
+  border: 2px dashed var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.upload-card:hover {
+  border-color: var(--primary-green);
+  background: var(--light-green);
+}
+
+.upload-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.upload-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.upload-description {
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+}
+
+.file-grid {
+  gap: 1rem;
+}
+
+.file-item {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.file-item:hover {
+  background: var(--bg-tertiary);
+  transform: translateY(-2px);
+}
+
+.file-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.file-name {
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+  word-break: break-word;
+}
+
+.file-meta {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.file-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.upload-progress-container {
+  margin-top: 2rem;
+}
+
+.upload-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.upload-info {
+  flex: 1;
+}
+
+.upload-filename {
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.upload-size {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.upload-progress {
+  flex: 2;
+  height: 8px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.upload-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary-green), var(--primary-blue));
+  transition: width 0.3s ease;
+}
+
+.upload-item.completed .upload-bar {
+  background: var(--primary-green);
+}
+
+/* Responsive Design for Owner Dashboard */
+@media (max-width: 1024px) {
+  .overview-grid .stats-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .owner-nav-tabs {
+    overflow-x: auto;
+    white-space: nowrap;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  
+  .owner-nav-tabs::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .nav-tab {
+    flex-shrink: 0;
+  }
+  
+  .overview-grid .stats-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .upload-options {
+    grid-template-columns: 1fr;
+  }
+  
+  .file-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .bookings-table .table-header,
+  .bookings-table .table-row {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  
+  .bookings-table .table-header > div,
+  .bookings-table .table-row > div {
+    padding: 0.5rem;
+  }
+}
+
 /* Print styles */
 @media print {
   .header,
